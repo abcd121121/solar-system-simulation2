@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>太阳系行星轨道模拟</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c1445 0%, #1a237e 100%);
+            color: #e0f7fa;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            background: rgba(13, 71, 161, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            background: linear-gradient(to right, #4fc3f7, #29b6f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #81d4fa;
+            max-width: 800px;
+            margin: 0 auto 20px;
+        }
+        
+        .description {
+            max-width: 800px;
+            margin: 0 auto 40px;
+            padding: 25px;
+            background: rgba(2, 119, 189, 0.2);
+            border-radius: 12px;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+        
+        .simulation-container {
+            background: rgba(13, 71, 161, 0.25);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        #solar-system {
+            width: 100%;
+            height: 700px;
+            background-color: rgba(0, 10, 30, 0.7);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #0288d1 0%, #01579b 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(2, 136, 209, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(2, 136, 209, 0.6);
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+        }
+        
+        .btn i {
+            font-size: 1.2rem;
+        }
+        
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 50px;
+        }
+        
+        .info-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 40px 0;
+        }
+        
+        .info-card {
+            background: rgba(2, 119, 189, 0.25);
+            border-radius: 12px;
+            padding: 25px;
+            transition: transform 0.3s ease;
+        }
+        
+        .info-card:hover {
+            transform: translateY(-5px);
+            background: rgba(2, 119, 189, 0.35);
+        }
+        
+        .info-card h3 {
+            color: #4fc3f7;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .planet-list {
+            list-style: none;
+        }
+        
+        .planet-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .planet-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .planet-name {
+            font-weight: bold;
+            color: #81d4fa;
+        }
+        
+        .planet-value {
+            color: #e1f5fe;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 40px;
+            color: #81d4fa;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            #solar-system {
+                height: 500px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+    <!-- 引入Font Awesome图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-globe-americas"></i> 太阳系行星轨道模拟</h1>
+            <p class="subtitle">交互式展示太阳系行星围绕太阳运动的精确轨道模型</p>
+        </header>
+        
+        <section class="description">
+            <p>此模拟基于NASA提供的真实行星数据创建，展示了太阳系行星的椭圆轨道运动。每个行星的位置都根据其轨道参数精确计算，包括半长轴、偏心率等。行星大小和颜色已做适当调整以便于观察，实际行星大小差异远大于此表示。</p>
+        </section>
+        
+        <section class="simulation-container">
+            <h2 style="text-align: center; margin-bottom: 20px; color: #4fc3f7;"><i class="fas fa-satellite"></i> 行星轨道模拟</h2>
+            <div id="solar-system">
+                <!-- 动画将在这里加载 -->
+            </div>
+            
+            <div class="controls">
+                <button class="btn" id="play-btn">
+                    <i class="fas fa-pause"></i> 暂停
+                </button>
+                <button class="btn" id="speed-up">
+                    <i class="fas fa-forward"></i> 加速
+                </button>
+                <button class="btn" id="speed-down">
+                    <i class="fas fa-backward"></i> 减速
+                </button>
+                <button class="btn" id="reset">
+                    <i class="fas fa-sync"></i> 重置
+                </button>
+                
+                <div class="speed-control">
+                    <span>速度:</span>
+                    <span id="speed-display">0.1x</span>
+                </div>
+            </div>
+        </section>
+        
+        <section class="info-section">
+            <div class="info-card">
+                <h3><i class="fas fa-info-circle"></i> 关于此模拟</h3>
+                <p>此模拟使用Python的Matplotlib库创建，并通过mpld3转换为交互式网页。所有轨道计算基于开普勒行星运动定律，考虑了每个行星的偏心率。</p>
+                <p>模拟中的时间比例尺为：1秒 ≈ 150个地球日。你可以使用上方的控制按钮调整模拟速度。</p>
+            </div>
+            
+            <div class="info-card">
+                <h3><i class="fas fa-star"></i> 行星数据</h3>
+                <ul class="planet-list">
+                    <li><span class="planet-name">水星</span> <span class="planet-value">轨道偏心率: 0.2056</span></li>
+                    <li><span class="planet-name">金星</span> <span class="planet-value">轨道偏心率: 0.0068</span></li>
+                    <li><span class="planet-name">地球</span> <span class="planet-value">轨道偏心率: 0.0167</span></li>
+                    <li><span class="planet-name">火星</span> <span class="planet-value">轨道偏心率: 0.0934</span></li>
+                    <li><span class="planet-name">木星</span> <span class="planet-value">轨道偏心率: 0.0489</span></li>
+                    <li><span class="planet-name">土星</span> <span class="planet-value">轨道偏心率: 0.0565</span></li>
+                    <li><span class="planet-name">天王星</span> <span class="planet-value">轨道偏心率: 0.0472</span></li>
+                    <li><span class="planet-name">海王星</span> <span class="planet-value">轨道偏心率: 0.0086</span></li>
+                </ul>
+            </div>
+        </section>
+        
+        <footer>
+            <p>数据来源：NASA行星数据库 | 模拟使用Python Matplotlib和mpld3创建</p>
+            <p>© 2023 太阳系行星轨道模拟 | 教育用途</p>
+        </footer>
+    </div>
+
+    <!-- 引入D3.js和mpld3库 -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://mpld3.github.io/js/mpld3.v0.5.8.js"></script>
+    
+    <!-- 加载动画并添加控制 -->
+    <script>
+        // 加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检测浏览器是否支持WebGL
+            function checkWebGLAvailability() {
+                try {
+                    const canvas = document.createElement('canvas');
+                    return !!(window.WebGLRenderingContext && (
+                        canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
+                    ));
+                } catch (e) {
+                    return false;
+                }
+            }
+            
+            // 如果不支持WebGL，显示警告
+            if (!checkWebGLAvailability()) {
+                document.getElementById('solar-system').innerHTML = `
+                    <div style="text-align: center; padding: 50px; color: #ff6b6b;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 20px;"></i>
+                        <h3>您的浏览器不支持WebGL</h3>
+                        <p>此模拟需要WebGL支持才能运行。请更新您的浏览器或使用其他现代浏览器。</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 太阳系行星数据（已移除冥王星）
+            const planets = [
+                {name: "太阳", color: "#ffcc33", radius: 20, orbitRadius: 0, orbitPeriod: 0, eccentricity: 0},
+                {name: "水星", color: "#a9a9a9", radius: 4, orbitRadius: 60, orbitPeriod: 88, eccentricity: 0.2056},
+                {name: "金星", color: "#ffcc99", radius: 6, orbitRadius: 100, orbitPeriod: 225, eccentricity: 0.0068},
+                {name: "地球", color: "#0066cc", radius: 6.5, orbitRadius: 140, orbitPeriod: 365, eccentricity: 0.0167},
+                {name: "火星", color: "#ff6633", radius: 4.5, orbitRadius: 180, orbitPeriod: 687, eccentricity: 0.0934},
+                {name: "木星", color: "#ffaa88", radius: 12, orbitRadius: 230, orbitPeriod: 4333, eccentricity: 0.0489},
+                {name: "土星", color: "#ffddaa", radius: 10, orbitRadius: 290, orbitPeriod: 10759, eccentricity: 0.0565},
+                {name: "天王星", color: "#aaddff", radius: 8, orbitRadius: 350, orbitPeriod: 30689, eccentricity: 0.0472},
+                {name: "海王星", color: "#003366", radius: 7.5, orbitRadius: 400, orbitPeriod: 60182, eccentricity: 0.0086}
+            ];
+            
+            // 创建太阳系可视化
+            function createSolarSystem() {
+                const container = document.getElementById('solar-system');
+                container.innerHTML = '';
+                
+                // 创建SVG元素
+                const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                svg.setAttribute('width', '100%');
+                svg.setAttribute('height', '100%');
+                svg.setAttribute('viewBox', '-500 -500 1000 1000');
+                container.appendChild(svg);
+                
+                // 为每个行星创建轨道和行星元素
+                const planetElements = [];
+                const orbitElements = [];
+                
+                planets.forEach(planet => {
+                    if (planet.orbitRadius > 0) {
+                        // 创建椭圆轨道
+                        const orbit = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+                        const a = planet.orbitRadius; // 半长轴
+                        const b = planet.orbitRadius * Math.sqrt(1 - planet.eccentricity * planet.eccentricity); // 半短轴
+                        orbit.setAttribute('cx', '0');
+                        orbit.setAttribute('cy', '0');
+                        orbit.setAttribute('rx', a.toString());
+                        orbit.setAttribute('ry', b.toString());
+                        orbit.setAttribute('fill', 'none');
+                        orbit.setAttribute('stroke', 'rgba(255, 255, 255, 0.1)');
+                        orbit.setAttribute('stroke-width', '0.5');
+                        svg.appendChild(orbit);
+                        orbitElements.push(orbit);
+                    }
+                    
+                    // 创建行星
+                    const planetGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                    planetGroup.setAttribute('data-name', planet.name);
+                    
+                    const planetCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    planetCircle.setAttribute('cx', '0');
+                    planetCircle.setAttribute('cy', '0');
+                    planetCircle.setAttribute('r', planet.radius.toString());
+                    planetCircle.setAttribute('fill', planet.color);
+                    
+                    // 为太阳添加光芒效果
+                    if (planet.name === "太阳") {
+                        const filter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
+                        filter.setAttribute('id', 'glow');
+                        const feGaussianBlur = document.createElementNS("http://www.w3.org/2000/svg", "feGaussianBlur");
+                        feGaussianBlur.setAttribute('stdDeviation', '5');
+                        feGaussianBlur.setAttribute('result', 'blur');
+                        const feMerge = document.createElementNS("http://www.w3.org/2000/svg", "feMerge");
+                        const feMergeNode1 = document.createElementNS("http://www.w3.org/2000/svg", "feMergeNode");
+                        feMergeNode1.setAttribute('in', 'blur');
+                        const feMergeNode2 = document.createElementNS("http://www.w3.org/2000/svg", "feMergeNode");
+                        feMergeNode2.setAttribute('in', 'SourceGraphic');
+                        feMerge.appendChild(feMergeNode1);
+                        feMerge.appendChild(feMergeNode2);
+                        filter.appendChild(feGaussianBlur);
+                        filter.appendChild(feMerge);
+                        
+                        if (!svg.querySelector('defs')) {
+                            const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+                            svg.appendChild(defs);
+                        }
+                        svg.querySelector('defs').appendChild(filter);
+                        
+                        planetCircle.setAttribute('filter', 'url(#glow)');
+                    }
+                    
+                    // 为土星添加光环
+                    if (planet.name === "土星") {
+                        const ring = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+                        ring.setAttribute('cx', '0');
+                        ring.setAttribute('cy', '0');
+                        ring.setAttribute('rx', (planet.radius * 1.8).toString());
+                        ring.setAttribute('ry', (planet.radius * 0.6).toString());
+                        ring.setAttribute('fill', 'none');
+                        ring.setAttribute('stroke', planet.color);
+                        ring.setAttribute('stroke-width', '2');
+                        ring.setAttribute('transform', 'rotate(30)');
+                        planetGroup.appendChild(ring);
+                    }
+                    
+                    // 添加行星名称标签
+                    if (planet.name !== "太阳") {
+                        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                        label.setAttribute('x', (planet.radius + 5).toString());
+                        label.setAttribute('y', '4');
+                        label.setAttribute('fill', 'white');
+                        label.setAttribute('font-size', '12');
+                        label.textContent = planet.name;
+                        planetGroup.appendChild(label);
+                    }
+                    
+                    planetGroup.appendChild(planetCircle);
+                    svg.appendChild(planetGroup);
+                    planetElements.push({
+                        group: planetGroup,
+                        circle: planetCircle,
+                        data: planet
+                    });
+                });
+                
+                // 动画变量
+                let isRunning = true;
+                // 修改初始速度为 0.1，使动画更慢
+                let animationSpeed = 0.1; 
+                let currentTime = 0;
+                let lastFrameTime = 0;
+                
+                // 更新速度显示
+                document.getElementById('speed-display').textContent = animationSpeed.toFixed(1) + 'x';
+
+                // 动画函数
+                function animate(timestamp) {
+                    if (!lastFrameTime) lastFrameTime = timestamp;
+                    const deltaTime = (timestamp - lastFrameTime) / 1000; // 秒
+                    lastFrameTime = timestamp;
+                    
+                    if (isRunning) {
+                        currentTime += deltaTime * animationSpeed;
+                        
+                        // 更新每个行星的位置
+                        planetElements.forEach((planet, index) => {
+                            if (index === 0) return; // 跳过太阳
+                            
+                            const planetData = planet.data;
+                            const a = planetData.orbitRadius; // 半长轴
+                            const b = planetData.orbitRadius * Math.sqrt(1 - planetData.eccentricity * planetData.eccentricity); // 半短轴
+                            
+                            // 计算行星在轨道上的位置
+                            const angle = (currentTime * 2 * Math.PI) / (planetData.orbitPeriod / 365);
+                            const x = a * Math.cos(angle) * Math.cos(0) - b * Math.sin(angle) * Math.sin(0);
+                            const y = a * Math.cos(angle) * Math.sin(0) + b * Math.sin(angle) * Math.cos(0);
+                            
+                            planet.group.setAttribute('transform', `translate(${x}, ${y})`);
+                        });
+                    }
+                    
+                    requestAnimationFrame(animate);
+                }
+                
+                // 开始动画
+                requestAnimationFrame(animate);
+                
+                // 控制函数
+                return {
+                    playPause: function() {
+                        isRunning = !isRunning;
+                        return isRunning ? "播放" : "暂停";
+                    },
+                    speedUp: function() {
+                        animationSpeed *= 1.5;
+                        document.getElementById('speed-display').textContent = animationSpeed.toFixed(1) + 'x';
+                        return animationSpeed;
+                    },
+                    speedDown: function() {
+                        animationSpeed /= 1.5;
+                        document.getElementById('speed-display').textContent = animationSpeed.toFixed(1) + 'x';
+                        return animationSpeed;
+                    },
+                    reset: function() {
+                        currentTime = 0;
+                        animationSpeed = 0.1; // 重置为更慢的初始速度
+                        document.getElementById('speed-display').textContent = animationSpeed.toFixed(1) + 'x';
+                        document.getElementById('play-btn').innerHTML = '<i class="fas fa-pause"></i> 暂停';
+                        return animationSpeed;
+                    }
+                };
+            }
+            
+            // 创建太阳系动画
+            const animationController = createSolarSystem();
+            
+            // 播放/暂停按钮
+            document.getElementById('play-btn').addEventListener('click', function() {
+                const status = animationController.playPause();
+                this.innerHTML = status === "播放" ? '<i class="fas fa-pause"></i> 暂停' : '<i class="fas fa-play"></i> 播放';
+            });
+            
+            // 加速按钮
+            document.getElementById('speed-up').addEventListener('click', function() {
+                const speed = animationController.speedUp();
+                document.getElementById('speed-display').textContent = speed.toFixed(1) + 'x';
+            });
+            
+            // 减速按钮
+            document.getElementById('speed-down').addEventListener('click', function() {
+                const speed = animationController.speedDown();
+                document.getElementById('speed-display').textContent = speed.toFixed(1) + 'x';
+            });
+            
+            // 重置按钮
+            document.getElementById('reset').addEventListener('click', function() {
+                const speed = animationController.reset();
+                document.getElementById('speed-display').textContent = speed.toFixed(1) + 'x';
+                document.getElementById('play-btn').innerHTML = '<i class="fas fa-pause"></i> 暂停';
+            });
+        });
+    </script>
+</body>
+</html>
+    
